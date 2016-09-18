@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+
+{% load staticfiles %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+          crossorigin="anonymous">
+    <script   src="https://code.jquery.com/jquery-3.1.0.js"
+              integrity="sha256-slogkvB1K3VOkzAI8QITxV3VzpOnkeNVsKvtkYLMjfk="
+              crossorigin="anonymous">
+    </script>
+    <script src="{% static "js/reconnecting-websocket.min.js" %}" type="text/javascript"></script>
+    <script src="{% static "js/sendMessages.js" %}" type="text/javascript"></script>
+</head>
+<body>
+<div class="container">
+    <h4>Введите ссылки для парсинга:</h4>
+    <form id="urlsForm" role="form">
+        <div class="row">
+            <div class="wrapper col-xs-8">
+                <div class="form-group">
+                    <input type="url" name="url1" class="form-control"/>
+                </div>
+            </div>
+            <button class="addUrl col-xs-3">Добавить ссылку</button>
+        </div>
+        <div class="row">
+            <div class="form-group col-xs-6">
+                <input type="text" name="time_template" placeholder="шаблон времени в формате cron" class="form-control"/>
+            </div>
+            <span class="col-xs-6">
+                <pre>
+<!--             -->при пустом значении задача выполнится
+<!--             -->моментально.
+<!--             -->онлайн-утилита: <a href="http://crontab.guru" target="_blank">http://crontab.guru</a>
+<!--             -->Часовой пояс - UTC (-3 от московского)
+<!--              --><b>* * * * *</b>
+<!--                 -->| | | | |
+<!--                 -->| | | | +----- Дни недели (диапазон: 1-7)
+<!--                 -->| | | +------- Месяцы     (диапазон: 1-12)
+<!--                 -->| | +--------- Дни месяца (диапазон: 1-31)
+<!--                 -->| +----------- Часы       (диапазон: 0-23)
+<!--                 -->+------------- Минуты     (диапазон: 0-59)
+                </pre>
+            </span>
+
+        </div>
+        <input type="submit" value="Запустить задачу">
+    </form>
+    <div class="row" id="taskStatus">
+        <h4>Результаты парсинга:</h4>
+    </div>
+</div>
+</body>
+
+</html>

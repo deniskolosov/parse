@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'parse_app',
+    'kombu.transport.django',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -48,6 +50,16 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CHANNEL_LAYERS = {
+   "default": {
+       "BACKEND": "asgi_redis.RedisChannelLayer",  # use redis backend
+       "CONFIG": {
+           "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],  # set redis address
+       },
+       "ROUTING": "parse.routing.channel_routing",  # load routing from our routing.py file
+   },
+}
 
 ROOT_URLCONF = 'parse.urls'
 
@@ -119,3 +131,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Celery settings
+BROKER_URL = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
