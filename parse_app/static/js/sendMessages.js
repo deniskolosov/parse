@@ -1,13 +1,13 @@
 $(document).ready(function() {
-    var max_fields      = 5; //maximum input boxes allowed
-    var wrapper         = $(".wrapper"); //Fields wrapper
-    var add_button      = $(".addUrl"); //Add button ID
+    var max_fields      = 5;
+    var wrapper         = $(".wrapper");
+    var add_button      = $(".addUrl");
 
     var x = 1;
-    $(add_button).click(function(e){ //on add input button click
+    $(add_button).click(function(e){
         e.preventDefault();
-        if(x < max_fields){ //max input box allowed
-            x++; //text box increment
+        if(x < max_fields){
+            x++;
             $(wrapper).append('<div class="form-group"><input type="url" class="form-control" name="url'+ x + '"/><a href="#" class="remove_field">удалить</a></div>'); //add input box
         }
     });
@@ -17,14 +17,23 @@ $(document).ready(function() {
     console.log("Connecting to " + ws_path);
     var socket = new ReconnectingWebSocket(ws_path);
 
-    socket.onmessage = function(message) {
-        console.log("Got message: " + message.data);
-        var data = JSON.parse(message.data);
+    $("#startButton").click(function(event) {
+        event.preventDefault();
+        data = $("#urlsForm").serializeArray();
+        var message = {
+            action: "add_parsing_task",
+            data: data
+        };
+        message = JSON.stringify(message);
+        socket.send(message);
+    });
 
-        // if action is started, add new item to table
+    socket.onmessage = function(message) {
+        var data = JSON.parse(message.data);
+        var startButton = $("#startButton");
+        var stopButton = $("#stopButton");
+
         if (data.action == "added") {
-            var startButton = $("#startButton");
-            var stopButton = $("#stopButton");
             startButton.prop('disabled', true);
             stopButton.prop('disabled', false);
             stopButton.click(function(){
@@ -60,14 +69,19 @@ $(document).ready(function() {
             $("#item-status-"+data.page_id).html("processing");
         } else if (data.action == "parsed") {
             clearInterval(data.timer_id);
+            startButton.prop('disabled', false);
+            stopButton.prop('disabled', true);
+
             var label = $('#item-status-' + data.page_id + ' span');
             label.attr("class", "label label-success");
             label.text(data.page_status);
+
             var row = $('#' + data.page_id);
             row.append($('<div>Title: '+ data.title + ' </div>'));
             row.append($('<div>first h1: '+ data.first_h1 + '</div>'));
             row.css("background", "url(" + data.first_img + ") no-repeat");
             row.css("border", "solid 1px");
+
         } else if (data.action == "cancelled") {
             clearInterval(data.timer_id);
             var cancelled = $('#item-status-' + data.page_id + ' span');
@@ -75,24 +89,11 @@ $(document).ready(function() {
             cancelled.text(data.page_status);
         }
 
-
         $(wrapper).on("click", ".remove_field", function(e) { //user click on remove text
             e.preventDefault();
             $(this).parent('div').remove();
             x--;
         });
 
-
-
-        $("#urlsForm").submit(function(event) {
-            event.preventDefault();
-            data = $(this).serializeArray();
-            var message = {
-                action: "add_parsing_task",
-                data: data
-            };
-            message = JSON.stringify(message);
-            socket.send(message);
-        });
     };
 });

@@ -7,7 +7,6 @@ import croniter
 import requests
 from channels import Channel
 
-
 from parse.celery import app
 from parse_app.models import Page
 
@@ -20,7 +19,7 @@ def parse(self, job_id, reply_channel, time_template=None):
         raise self.retry(args=(job_id, reply_channel, time_template),
                          exc=Exception, countdown=exec_in)
     page = Page.objects.get(pk=job_id)
-    time.sleep(3)
+    time.sleep(1)  # for convenience
 
     response = requests.get(page.url)
     soup = bs4.BeautifulSoup(response.text)
