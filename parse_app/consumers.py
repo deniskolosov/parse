@@ -3,6 +3,7 @@ import json
 from channels import Channel
 from channels.sessions import channel_session
 
+from parse.celery import app
 from parse_app.models import Page
 from parse_app.tasks import parse
 
@@ -29,20 +30,14 @@ def ws_receive(message):
         if data['action'] == "add_parsing_task":
             start_parsing(data, reply_channel)
         elif data['action'] == "is_processing":
-            page = Page.objects.get(pk=data['page_id'])
-            if page:
-                Channel(reply_channel).send({
-                    "text": json.dumps({
-                        "action": page.status,
-                        "timer_id": data['timer_id']
-                    })
-                })
+            is_processing(data, reply_channel)
+        elif data['action'] == "stop_task":
+            stop_parsing(data, reply_channel)
 
 
 def start_parsing(data, reply_channel):
     time_template = [item['value'] for item in data['data'] if item['name'] == 'time_template'][0]
     urls = [item['value'] for item in data['data'] if 'url' in item['name']]
-    print(urls)
     for url in urls:
         page = Page(url=url)
         page.status = "delayed" if time_template else "processing"
@@ -56,6 +51,34 @@ def start_parsing(data, reply_channel):
                 "page_id": page.id,
                 "page_url": page.url,
                 "page_status": page.status,
+            })
+        })
+
+
+def is_processing(data, reply_channel):
+    page = Page.objects.get(pk=data['page_id'])
+    if page:
+        Channel(reply_channel).send({
+            "text": json.dumps({
+                "action": page.status,
+                "timer_id": data['timer_id']
+            })
+        })
+
+
+def stop_parsing(data, reply_channel):
+    page = Page.objects.get(pk=data['page_id'])
+
+    if page:
+        app.control.revoke(page.celery_id, terminate=True)
+        page.status = "cancelled"
+        page.save()
+        Channel(reply_channel).send({
+            "text": json.dumps({
+                "action": "cancelled",
+                "timer_id": data['timer_id'],
+                "page_id": page.id,
+                "page_status": page.status
             })
         })
 

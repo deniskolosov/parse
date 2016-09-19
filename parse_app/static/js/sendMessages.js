@@ -23,6 +23,19 @@ $(document).ready(function() {
 
         // if action is started, add new item to table
         if (data.action == "added") {
+            var startButton = $("#startButton");
+            var stopButton = $("#stopButton");
+            startButton.prop('disabled', true);
+            stopButton.prop('disabled', false);
+            stopButton.click(function(){
+                message = {
+                    action: "stop_task",
+                    page_id: data.page_id
+                };
+                socket.send(JSON.stringify(message));
+                startButton.prop('disabled', false);
+                stopButton.prop('disabled', true);
+            });
             var task_status = $("#taskStatus");
             var ele = $('<div class="col-md-6" style="margin-top:5px"></div>');
             ele.attr("id", data.page_id);
@@ -45,8 +58,7 @@ $(document).ready(function() {
 
         } else if (data.action == "processing"){
             $("#item-status-"+data.page_id).html("processing");
-        }
-        else if (data.action == "parsed") {
+        } else if (data.action == "parsed") {
             clearInterval(data.timer_id);
             var label = $('#item-status-' + data.page_id + ' span');
             label.attr("class", "label label-success");
@@ -56,6 +68,11 @@ $(document).ready(function() {
             row.append($('<div>first h1: '+ data.first_h1 + '</div>'));
             row.css("background", "url(" + data.first_img + ") no-repeat");
             row.css("border", "solid 1px");
+        } else if (data.action == "cancelled") {
+            clearInterval(data.timer_id);
+            var cancelled = $('#item-status-' + data.page_id + ' span');
+            cancelled.attr("class", "label label-warning");
+            cancelled.text(data.page_status);
         }
 
 
@@ -64,6 +81,8 @@ $(document).ready(function() {
             $(this).parent('div').remove();
             x--;
         });
+
+
 
         $("#urlsForm").submit(function(event) {
             event.preventDefault();

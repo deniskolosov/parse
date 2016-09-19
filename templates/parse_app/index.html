@@ -25,7 +25,7 @@
                     <input type="url" name="url1" class="form-control"/>
                 </div>
             </div>
-            <button class="addUrl col-xs-3">Добавить ссылку</button>
+            <button class="addUrl col-xs-2">Добавить поле ссылки</button>
         </div>
         <div class="row">
             <div class="form-group col-xs-6">
@@ -48,7 +48,8 @@
             </span>
 
         </div>
-        <input type="submit" value="Запустить задачу">
+        <input type="submit" class="btn btn-success" value="Запустить задачу" id="startButton">
+        <input type="button" onclick="" class="btn btn-danger" value="Остановить задачу" id="stopButton" disabled>
     </form>
     <div class="row" id="taskStatus">
         <h4>Результаты парсинга:</h4>
