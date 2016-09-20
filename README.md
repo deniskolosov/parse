@@ -5,4 +5,4 @@ $ pip install -r requirements.txt
 
 $ python3.4 manage.py runserver:8000
 
-$ celery -A parse worker -l info
+$ celery -A parse worker -l infod
