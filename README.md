@@ -1,7 +1,7 @@
 This is a simple Django webapp for parsing webpages built for educational purposes
 
 
-[image link](https://github.com/thefivekey/parse/raw/master/screenshot.png)
+![image link](https://github.com/thefivekey/parse/raw/master/screenshot.png)
 
 #### This app uses:
 
