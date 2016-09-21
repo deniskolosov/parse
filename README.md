@@ -10,7 +10,10 @@ Django + Channels, Postgres, Celery w/ Redis backend
 #### Installation:
 If you have docker toolbox installed:
 
+`$ git clone https://github.com/thefivekey/parse.git`
+
 `$ docker-compose build`
+
 `$ docker-compose up -d`
 
 or (don't forget to change settings.py)
