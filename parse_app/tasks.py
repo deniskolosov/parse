@@ -12,23 +12,25 @@ from parse_app.models import Page
 
 
 @app.task(bind=True)
-def parse(self, job_id, reply_channel, time_template=None):
+def parse(self, page_id, reply_channel, time_template=None):
+    # delay parsing
     if time_template:
         exec_in = execute_in(time_template)
         time_template = None
-        raise self.retry(args=(job_id, reply_channel, time_template),
+        raise self.retry(args=(page_id, reply_channel, time_template),
                          exc=Exception, countdown=exec_in)
-    page = Page.objects.get(pk=job_id)
-    time.sleep(1)  # for convenience
+    page = Page.objects.get(pk=page_id)
+    time.sleep(2)  # to have time to stop task
 
     response = requests.get(page.url)
     soup = bs4.BeautifulSoup(response.text)
-    first_img = soup.img.attrs['src'] if soup.img else ''
-    first_h1 = soup.h1.text if soup.h1 else None
-    title = soup.title.text
 
+    first_img = soup.img.attrs['src'] if soup.img else ''
     if "http" not in first_img:
         first_img = page.url + '/' + first_img
+    page.first_img = first_img
+    page.first_h1 = soup.h1.text if soup.h1 else None
+    page.title = soup.title.text
 
     page.status = "parsed"
     page.save()
@@ -37,12 +39,7 @@ def parse(self, job_id, reply_channel, time_template=None):
         Channel(reply_channel).send({
             "text": json.dumps({
                 "action": "parsed",
-                "page_id": page.id,
-                "page_url": page.url,
-                "page_status": page.status,
-                "first_img": first_img,
-                "first_h1": first_h1,
-                "title": title
+                "page_id": page.id
             })
         })
 

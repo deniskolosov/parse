@@ -48,9 +48,7 @@ def start_parsing(data, reply_channel):
         Channel(reply_channel).send({
             "text": json.dumps({
                 "action": "added",
-                "page_id": page.id,
-                "page_url": page.url,
-                "page_status": page.status,
+                "page_id": page.id
             })
         })
 
@@ -81,4 +79,3 @@ def stop_parsing(data, reply_channel):
                 "page_status": page.status
             })
         })
-

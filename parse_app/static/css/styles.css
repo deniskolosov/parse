@@ -1,0 +1,6 @@
+.page {
+    min-height: 100px;
+    margin-top: 5px;
+    margin-right: 5px;
+    border: solid black 1px;
+}

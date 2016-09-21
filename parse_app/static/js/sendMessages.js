@@ -12,10 +12,23 @@ $(document).ready(function() {
         }
     });
 
+    $(wrapper).on("click", ".remove_field", function(e) { //user click on remove text
+        e.preventDefault();
+        $(this).parent('div').remove();
+        x--;
+    });
+
     var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
     var ws_path = ws_scheme + '://' + window.location.host;
     console.log("Connecting to " + ws_path);
     var socket = new ReconnectingWebSocket(ws_path);
+
+    var currentPage = 1;
+
+    var nextPageButton = $("#nextPage");
+    var prevPageButton = $("#prevPage");
+    var pagesDiv = $("#pagesDiv");
+    var currentPageLabel = $("#currentPageLabel");
 
     $("#startButton").click(function(event) {
         event.preventDefault();
@@ -27,6 +40,62 @@ $(document).ready(function() {
         message = JSON.stringify(message);
         socket.send(message);
     });
+
+    nextPageButton.click(function() {
+        if (totalPages == 1){ return }
+        currentPage = currentPage + 1;
+        currentPageLabel.text(currentPage);
+        if (totalPages == currentPage) {
+            nextPageButton.prop('disabled', true);
+        }
+        if (currentPage == 2) {
+            prevPageButton.prop('disabled', false);
+        }
+        fillPages(currentPage);
+    });
+
+    prevPageButton.click(function() {
+        if (totalPages == 1 || currentPage == 1) { return }
+        if (totalPages == currentPage) {
+            nextPageButton.prop('disabled', false);
+        }
+        currentPage = currentPage - 1;
+        currentPageLabel.text(currentPage);
+        if (currentPage == 1) {
+            prevPageButton.prop('disabled', true);
+        }
+        fillPages(currentPage);
+    });
+
+    var fillPages = function(pageNumber){
+        $.ajax({
+            url: '/?page_number=' + pageNumber,
+            success: function(data) {
+                pagesDiv.empty();
+                data = data['pages'];
+                if (data.length > 0) {
+                    for (var i = 0, total = data.length; i < total; i++) {
+                        var pageUrl = data[i].url;
+                        var title = data[i].title;
+                        var status = data[i].status;
+                        var imgUrl = data[i].img;
+                        var id = data[i].page_id;
+                        var ele = $('<div class="page col-md-6">' +
+                            '<span>' + pageUrl + '</span><br>' +
+                            '<span>' + title + '</span><br>' +
+                            '<span class="label label-primary" id="item-status-'
+                            + id +'">' + status + '</span>' +
+                            '</div>');
+                        ele.append($(' <a class="btn btn-xs btn-info" href="' + imgUrl + '" download="image.jpg">Скачать фон</a>'));
+                        ele.css("background", "url(" + imgUrl + ") no-repeat");
+                        pagesDiv.append(ele);
+                    }
+                } else {
+                    pagesDiv.append('Нет спарсенных страниц');
+                }
+            }
+        });
+    };
 
     socket.onmessage = function(message) {
         var data = JSON.parse(message.data);
@@ -45,17 +114,8 @@ $(document).ready(function() {
                 startButton.prop('disabled', false);
                 stopButton.prop('disabled', true);
             });
-            var task_status = $("#taskStatus");
-            var ele = $('<div class="col-md-6" style="margin-top:5px"></div>');
-            ele.attr("id", data.page_id);
-            var item_name = $("<span></span>").text(data.page_url);
-            ele.append(item_name);
-            var item_status = $("<div></div>");
-            item_status.attr("id", "item-status-" + data.page_id);
-            var span = $('<span class="label label-primary"></span>').text(data.page_status);
-            item_status.append(span);
-            ele.append(item_status);
-            task_status.append(ele);
+            fillPages(currentPage);
+
             message = {
                 action: "is_processing",
                 page_id: data.page_id
@@ -72,28 +132,15 @@ $(document).ready(function() {
             startButton.prop('disabled', false);
             stopButton.prop('disabled', true);
 
-            var label = $('#item-status-' + data.page_id + ' span');
+            fillPages(currentPage);
+            var label = $('#item-status-' + data.page_id);
             label.attr("class", "label label-success");
-            label.text(data.page_status);
-
-            var row = $('#' + data.page_id);
-            row.append($('<div>Title: '+ data.title + ' </div>'));
-            row.append($('<div>first h1: '+ data.first_h1 + '</div>'));
-            row.css("background", "url(" + data.first_img + ") no-repeat");
-            row.css("border", "solid 1px");
 
         } else if (data.action == "cancelled") {
             clearInterval(data.timer_id);
-            var cancelled = $('#item-status-' + data.page_id + ' span');
+            var cancelled = $('#item-status-' + data.page_id);
             cancelled.attr("class", "label label-warning");
-            cancelled.text(data.page_status);
+            fillPages(currentPage);
         }
-
-        $(wrapper).on("click", ".remove_field", function(e) { //user click on remove text
-            e.preventDefault();
-            $(this).parent('div').remove();
-            x--;
-        });
-
     };
 });
