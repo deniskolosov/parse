@@ -55,7 +55,7 @@ CHANNEL_LAYERS = {
    "default": {
        "BACKEND": "asgi_redis.RedisChannelLayer",  # use redis backend
        "CONFIG": {
-           "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],  # set redis address
+           "hosts": [os.environ.get('REDIS_URL', 'redis://redis:6379')],  # set redis address
        },
        "ROUTING": "parse.routing.channel_routing",  # load routing from our routing.py file
    },
@@ -89,11 +89,10 @@ WSGI_APPLICATION = 'parse.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'parse',
-        'USER': 'django_user',
-        'PASSWORD': 'djangopassword',
-        'HOST': 'localhost',
-        'PORT': '',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'HOST': 'db',
+        'PORT': 5432,
     }
 }
 
@@ -137,7 +136,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Celery settings
-BROKER_URL = 'redis://localhost:6379/0'
+BROKER_URL = 'redis://redis:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

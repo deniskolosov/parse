@@ -1,0 +1,34 @@
+version: '2'
+services:
+  db:
+    image: postgres
+    restart: always
+  web:
+    build: .
+    expose:
+      - "8000"
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/src
+    ports:
+      - "8000:8000"
+    links:
+      - db
+      - celery
+  celery:
+    build: .
+    restart: always
+    command: celery -A parse worker -l info
+    links:
+      - db
+      - redis
+  redis:
+    restart: always
+    image: redis:latest
+    ports:
+      - "6379"
+    volumes:
+      - /data
+  migrations:
+    build: .
+    command: bash -c "python manage.py makemigrations && python manage.py migrate"
